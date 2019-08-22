@@ -6,20 +6,21 @@
 /*   By: cyuriko <marvin@42.fr>                     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/04/12 20:20:11 by cyuriko           #+#    #+#             */
-/*   Updated: 2019/04/24 14:19:47 by cyuriko          ###   ########.fr       */
+/*   Updated: 2019/08/21 13:57:34 by cyuriko          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
+#include <stdio.h>
 
-void	*ft_bzero(void *str, size_t n)
+void	ft_bzero(void *str, size_t n)
 {
-	unsigned char *dest;
+	size_t i;
 
-	dest = str;
-	while (n-- != 0)
+	i = 0;
+	while (i < n)
 	{
-		dest[n] = '\0';
+		((char*)str)[i] = 0;
+		i++;
 	}
-	return (dest);
 }

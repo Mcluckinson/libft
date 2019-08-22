@@ -22,7 +22,8 @@ ft_strjoin.c ft_strlcat.c ft_strlen.c ft_strmap.c ft_strmapi.c ft_strncat.c ft_s
 ft_strnequ.c ft_strnew.c ft_strnstr.c ft_strrchr.c ft_strsplit.c ft_strstr.c ft_strsub.c ft_strtrim.c\
 ft_tolower.c ft_toupper.c ft_itoa.c ft_putchar.c ft_putstr.c ft_putendl.c ft_putnbr.c ft_putchar_fd.c\
 ft_putstr_fd.c ft_putendl_fd.c ft_putnbr_fd.c ft_lstdelone.c ft_lstdel.c ft_lstnew.c ft_lstadd.c ft_lstiter.c\
-ft_lstmap.c ft_delarr.c ft_lstdelcont.c ft_power.c ft_lstcount.c ft_lstfind.c ft_listlast.c get_next_line.c
+ft_lstmap.c ft_delarr.c ft_lstdelcont.c ft_power.c ft_lstcount.c ft_lstfind.c ft_listlast.c get_next_line.c\
+ft_swap.c
 
 OBJ = $(SRC:%.c=%.o)
 
