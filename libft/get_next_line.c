@@ -5,102 +5,109 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: cyuriko <cyuriko@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/05/05 12:07:09 by cyuriko           #+#    #+#             */
-/*   Updated: 2019/05/27 16:41:32 by cyuriko          ###   ########.fr       */
+/*   Created: 2019/09/01 16:21:58 by cyuriko           #+#    #+#             */
+/*   Updated: 2019/09/01 16:21:58 by cyuriko          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "libft.h"
+#include "get_next_line.h"
 
-static	size_t		gls(char *src)
+static t_fd_list	*new_t_fd_list(int fd)
 {
-	size_t	size;
+	t_fd_list	*temp;
 
-	if (!src)
-		return (0);
-	size = 0;
-	while (src[size] != '\n' && src[size] != '\0' && src[size])
-		size++;
-	return (size);
+	temp = (t_fd_list*)malloc(sizeof(t_fd_list));
+	temp->fd = fd;
+	temp->str = ft_strnew(0);
+	temp->next = NULL;
+	temp->prev = NULL;
+	return (temp);
 }
 
-static	int			check_line(char *tempest)
+static int			del_list(t_fd_list **temp, t_fd_list **start_list)
 {
-	size_t i;
+	t_fd_list *next;
 
-	i = 0;
-	if (!tempest)
-		return (0);
-	while (tempest[i])
-	{
-		if (tempest[i] == '\n' || tempest[i] == '\0')
-			return (2);
-		i++;
-	}
-	if (i > 0)
-		return (1);
-	return (0);
+	if (*temp == *start_list)
+		*start_list = NULL;
+	next = (*temp)->next;
+	if ((*temp)->prev)
+		(*temp)->prev->next = (*temp)->next;
+	if ((*temp)->next)
+		(*temp)->next->prev = (*temp)->prev;
+	free((*temp)->str);
+	free(*temp);
+	*temp = next;
+	return (-1);
 }
 
-static	char		*ft_strnjoin(char const *s1, char const *s2, size_t tempest)
+static t_fd_list	*find_t_fd_list(const int fd, t_fd_list **start_list)
 {
-	char	*result;
-	size_t	len;
+	t_fd_list			*temp;
 
-	len = tempest + ft_strlen(s1);
-	if (!(result = (char*)malloc((len + 1) * sizeof(char))))
-		return (NULL);
-	while (*s1)
-		*result++ = *s1++;
-	while (*s2 && tempest > 0)
+	temp = *start_list;
+	if (!*start_list)
+		*start_list = new_t_fd_list(fd);
+	temp = *start_list;
+	while (temp->next && temp->fd != fd)
+		temp = temp->next;
+	if (!(temp->fd == fd))
 	{
-		*result++ = *s2++;
-		tempest--;
+		temp->next = new_t_fd_list(fd);
+		temp->next->prev = temp;
+		temp = temp->next;
 	}
-	*result = '\0';
-	return (result - len);
+	return (temp);
 }
 
-static	char		*get_line(char *tmp, char *buff, size_t tempest)
+static int			read_to_list(t_fd_list *temp, t_fd_list **start_list)
 {
-	char	*tmp2;
-	char	*result;
+	char			buff[BUFF_SIZE + 1];
+	char			*temp_str;
+	int				ch_read;
 
-	if (!tmp)
-		result = ft_strsub(buff, 0, tempest);
-	else
+	ft_memset(buff, '\0', BUFF_SIZE);
+	while ((ch_read = read(temp->fd, buff, BUFF_SIZE)))
 	{
-		tmp2 = ft_strnjoin(tmp, buff, tempest);
-		free(tmp);
-		result = ft_strsub(tmp2, 0, ft_strlen(tmp2));
-		free(tmp2);
+		if (ch_read < 0)
+			return (del_list(&temp, start_list));
+		buff[ch_read] = '\0';
+		temp_str = ft_strjoin(temp->str, buff);
+		free(temp->str);
+		temp->str = temp_str;
+		if (!temp_str)
+			return (del_list(&temp, start_list));
+		if (ft_strchr(buff, '\n'))
+			break ;
 	}
-	return (result);
+	return (1);
 }
 
 int					get_next_line(const int fd, char **line)
 {
-	static char	*next;
-	char		*tmp;
-	int			tempest;
-	char		buff[BUFF_SIZE];
+	t_fd_list			*temp;
+	char				*temp_str;
+	char				*ptr;
+	static t_fd_list	*start_list;
 
-	tempest = BUFF_SIZE;
-	if (!(tmp = NULL) && (fd < 0 || BUFF_SIZE < 1))
+	ptr = NULL;
+	if (fd < 0 || !line || BUFF_SIZE < 0)
 		return (-1);
-	if (next && (tmp = ft_strsub(next, 0, ft_strlen(next))))
-		ft_strdel(&next);
-	while (check_line(tmp) != 2 && tempest == BUFF_SIZE)
+	temp = find_t_fd_list(fd, &start_list);
+	if (read_to_list(temp, &start_list) == -1)
+		return (-1);
+	if (!(*temp->str))
+		return (del_list(&temp, &start_list) + 1);
+	temp_str = temp->str;
+	if ((ptr = ft_strchr(temp_str, '\n')))
 	{
-		if ((tempest = read(fd, buff, BUFF_SIZE)) && tempest == -1)
-			return (-1);
-		if (tempest != 0)
-			tmp = get_line(tmp, buff, tempest);
+		*ptr = '\0';
+		temp->str = ft_strdup(ptr + 1);
 	}
-	if ((*line = ft_strsub(tmp, 0, gls(tmp))) && check_line(tmp))
-		next = ft_strsub(tmp, gls(tmp) + 1, ft_strlen(tmp) - gls(tmp) - 1);
-	free(tmp);
-	if (!gls(*line) && tempest == 0)
-		return (0);
+	else
+		temp->str = ft_strdup("\0");
+	if (*temp_str || ptr)
+		*line = ft_strdup(temp_str);
+	free(temp_str);
 	return (1);
 }

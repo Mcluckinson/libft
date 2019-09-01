@@ -17,7 +17,7 @@
 # include <unistd.h>
 # include <fcntl.h>
 # include <stdio.h>
-# define BUFF_SIZE 5000
+# include "get_next_line.h"
 
 typedef	struct		s_list
 {
